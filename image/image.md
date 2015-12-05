@@ -5,13 +5,13 @@
 
 * binwalk --文件隐写提取
 
-> kali自带
+    > kali自带
 
 * StegSolve --java版，隐写分析
 
 * StegDetect
 
-> <a href='http://www.codeforge.cn/article/149993'>linux下载</a>
+    > <a href='http://www.codeforge.cn/article/149993'>linux下载</a>
 
 * winhex  
 
@@ -19,11 +19,11 @@
 
     + file
     
-    > file <filename> 查看文件类型
+        > file <filename> 查看文件类型
     
     + strings
 
-     > file <filename> 查看文件中的可打印字符
+        > file <filename> 查看文件中的可打印字符
 
 * python
 
