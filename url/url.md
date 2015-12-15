@@ -39,5 +39,7 @@
 ### 参考
 
 * [URL重定向/跳转漏洞][1]
+* [URL Hacking - 前端猥琐流][2]
 
 [1]: http://drops.wooyun.org/papers/58
+[2]: http://drops.wooyun.org/tips/750
