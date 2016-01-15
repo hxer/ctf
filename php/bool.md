@@ -22,7 +22,7 @@ user, pass 的值是未知的，条件判断时使 $data_unserialize['user']=tru
 $arr =  array();
 $arr['user']=TRUE;
 $arr['pass']=TRUE;
-$seialize_str = serialize($arr);
+$seialize_str = serialize($arr);    //a:2:{s:4:"user";b:1;s:4:"pass";b:1;}
 $flag='ctf_flag';
 $data_unserialize = unserialize($serialize_str);
 if($data_unserialize['user'] == '???' && $data_unserialize['pass']=='???')
