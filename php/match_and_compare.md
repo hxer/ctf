@@ -69,3 +69,17 @@ if($data_unserialize['user'] == '???' && $data_unserialize['pass']=='???')
     print_r($flag);
 }
 '''
+
+## urldecode
+
+urldecode 与 $_GET[] $_POST[] $_REQEST[] 联合使用
+$_GET[] $_POST[] $_REQEST[] 返回的参数是**已经被解码了**的，在进行 urldecode 相当于 二次 urldecode
+
+* poc
+
+'''php
+$username = $_GET['username'];  //url: ...?username=%2561dmin   %61 is a
+if (urldecode($username) === "admin"){
+    echo "you are admin";
+}
+'''
