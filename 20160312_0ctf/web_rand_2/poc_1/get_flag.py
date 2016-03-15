@@ -55,7 +55,7 @@ def get_flag(url):
 
 if __name__ == "__main__":
     #url = 'http://202.120.7.202:8888/'
-    url = 'http://127.0.0.1/0ctf'
+    url = 'http://127.0.0.1:8000/'
     print("begin to get flag:")
 
     while True:
