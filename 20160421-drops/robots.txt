@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /login.php
+Disallow: /read.php
+Disallow: /index.php
+Disallow: /common.php
+Disallow: /search.php
+Disallow: /function.php
