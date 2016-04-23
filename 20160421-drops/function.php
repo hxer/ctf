@@ -1,95 +1,82 @@
 ﻿<?php
-error_reporting(E_ALL ^ E_NOTICE);
-$_POST=Add_S($_POST);
-$_GET=Add_S($_GET);
-$_COOKIE=Add_S($_COOKIE);
-$_REQUEST=Add_S($_REQUEST);
-
-foreach($_POST AS $_key=>$_value){
-    !preg_match("/^\_[A-Z]+/",$_key) && $$_key=$_POST[$_key]; //伪register globals
+/**
+ * Created by PhpStorm.
+ * User: yu
+ * Date: 4/12/16
+ * Time: 10:39 PM
+ */
+function think_ucenter_md5($str, $key = 'ThinkUCenter')
+{
+    return '' === $str ? '' : md5(sha1($str) . $key);
 }
 
-foreach($_GET AS $_key=>$_value){
-    !preg_match("/^\_[A-Z]+/",$_key) && $$_key=$_GET[$_key];
+/**
+ * 系统加密方法
+ * @param string $data 要加密的字符串
+ * @param string $key 加密密钥
+ * @param int $expire 过期时间 (单位:秒)
+ * @return string
+ */
+function think_ucenter_encrypt($data, $key, $expire = 0)
+{
+    $key = md5($key);
+    $data = base64_encode($data);
+    $x = 0;
+    $len = strlen($data);
+    $l = strlen($key);
+    $char = '';
+    for ($i = 0; $i < $len; $i++) {
+        if ($x == $l) $x = 0;
+        $char .= substr($key, $x, 1);
+        $x++;
+    }
+    $str = sprintf('%010d', $expire ? $expire + time() : 0);
+    for ($i = 0; $i < $len; $i++) {
+        $str .= chr(ord(substr($data, $i, 1)) + (ord(substr($char, $i, 1))) % 256);
+    }
+    return str_replace('=', '', base64_encode($str));
 }
 
-foreach($_COOKIE AS $_key=>$_value){
-    unset($$_key);    //不允许使用COOKIE创建变量
-}
-
-function Add_S($array){
-    foreach($array as $key=>$value){
-        if(!is_array($value)){
-            $filter = "\\<.+javascript:window\\[.{1}\\\\x|<.*=(&#\\d+?;?)+?>|<.*(data|src)=data:text\\/html.*>|\\b(alert\\(|confirm\\(|expression\\(|prompt\\(|benchmark\s*?\(.*\)|sleep\s*?\(.*\)|load_file\s*?\\()|<[a-z]+?\\b[^>]*?\\bon([a-z]{4,})\s*?=|^\\+\\/v(8|9)|\\b(and|or)\\b\\s*?([\\(\\)'\"\\d]+?=[\\(\\)'\"\\d]+?|[\\(\\)'\"a-zA-Z]+?=[\\(\\)'\"a-zA-Z]+?|>|<|\s+?[\\w]+?\\s+?\\bin\\b\\s*?\(|\\blike\\b\\s+?[\"'])|\\/\\*.*\\*\\/|<\\s*script\\b|\\bEXEC\\b|UNION.+?SELECT(\(|@{1,2}\w+?\s*|\s+?.+?|.*(`|'|\").+(`|'|\")\s*)|UPDATE\s*(\(.+\)\s*|@{1,2}.+?\s*|\s+?.+?|(`|'|\").*?(`|'|\")\s*)SET|INSERT\\s+INTO.+?VALUES|(SELECT|DELETE).+?FROM\s+?|(CREATE|ALTER|DROP|TRUNCATE)\\s+(TABLE|DATABASE)|FROM\s.?|\(select|\(\sselect|\bunion\b|select\s.+?";//过滤子查询各种
-            !get_magic_quotes_gpc() && $value=addslashes($value);
-            $value=check_sql($value);
-            webscan_StOpAttack($key,$value,$filter,"GET");
-            $array[$key]=$value;
-        }else{
-            $array[$key]=Add_S($array[$key]);
+/**
+ * 系统解密方法
+ * @param string $data 要解密的字符串 （必须是think_encrypt方法加密的字符串）
+ * @param string $key 加密密钥
+ * @return string
+ */
+function think_ucenter_decrypt($data, $key)
+{
+    $key = md5($key);
+    $x = 0;
+    $data = base64_decode($data);
+    $expire = substr($data, 0, 10);
+    $data = substr($data, 10);
+    if ($expire > 0 && $expire < time()) {
+        return '';
+    }
+    $len = strlen($data);
+    $l = strlen($key);
+    $char = $str = '';
+    for ($i = 0; $i < $len; $i++) {
+        if ($x == $l) $x = 0;
+        $char .= substr($key, $x, 1);
+        $x++;
+    }
+    for ($i = 0; $i < $len; $i++) {
+        if (ord(substr($data, $i, 1)) < ord(substr($char, $i, 1))) {
+            $str .= chr((ord(substr($data, $i, 1)) + 256) - ord(substr($char, $i, 1)));
+        } else {
+            $str .= chr(ord(substr($data, $i, 1)) - ord(substr($char, $i, 1)));
         }
-
     }
-return $array;
+    return base64_decode($str);
 }
 
-function webscan_St0pAttack($StrFiltKey,$StrFiltValue,$ArrFiltReq,$method) {
-
-        if (preg_match("/".$ArrFiltReq."/i",$StrFiltValue)==1){
-            exit('Hey boy,I\'m 360!');
-        }
-
-        if (preg_match("/".$ArrFiltReq."/i",$StrFiltKey)==1){
-            exit('Hey boy,I\'m 360!');
-        }
+function random($len) {
+    $srcstr = "1a2s3d4f5g6hj8k9l0qwertyuiopzxcvbnm";
+    mt_srand();
+    $strs = "";
+    for ($i = 0; $i < $len; $i++) {
+        $strs .= $srcstr[mt_rand(0, 10)];
+    }
+    return $strs;
 }
-
-function check_sql($str) {
-    $count=0;
-    for ($i = 0; $i < strlen($str); $i++) {
-        if($str[$i]=='\\'){
-            $count++;
-        }
-    }
-    if($count && $count % 2 == 0){
-        exit('evil string');
-    }
-    $check= preg_match('/select|\'|\"|,|%|insert|update|delete|union|into|load_file|outfile|or|\/\*/i', $str);
-    if($check) {
-        exit ("The data is unable to submit,Because it contain dengerous string,Please check it and clear it.");
-    }
-
-    $newstr="";
-    while($newstr!=$str){
-        $newstr=$str;
-        $str = str_replace("union", "", $str);
-        $str = str_replace("update", "", $str);
-        $str = str_replace("into", "", $str);
-        $str = str_replace("exec", "", $str);
-        $str = str_replace("select", "", $str);
-        $str = str_replace("delete", "", $str);
-        $str = str_replace("declear"," ",$str);
-        $str = str_replace("insert", "", $str);
-    }
-    return $str;
-}
-
-function webscan_StOpAttack($StrFiltKey,$StrFiltValue,$ArrFiltReq,$method) {
-
-    if (preg_match("/".$ArrFiltReq."/is",$StrFiltValue)==1  || strpos(strtolower(urlencode($StrFiltValue)),'%0b')){
-        exit('Hey boy,I\'m 360!');
-    }
-
-    if (preg_match("/".$ArrFiltReq."/is",$StrFiltKey)==1){
-        exit('Hey boy,I\'m 360!');
-    }
-}
-
-
-function mysql_conn(){
-    $conn=mysql_connect('localhost','root','sangebaimao') or die('could not connect'.mysql_error());
-    mysql_query('use ctf');
-    mysql_query("SET character_set_connection=utf8, character_set_results=utf8,character_set_client=utf8", $conn);
-}
-
-?>
